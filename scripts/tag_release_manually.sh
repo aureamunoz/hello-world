@@ -14,20 +14,30 @@ require_clean_work_tree () {
     git update-index -q --ignore-submodules --refresh
     err=0
 
+    #pkg/template/assets_vfsdata.go
+
     # Disallow unstaged changes in the working tree
     if ! git diff-files --quiet --ignore-submodules --
     then
-        echo >&2 "cannot $1: you have unstaged changes."
-        git diff-files --name-status -r --ignore-submodules -- >&2
-        err=1
+        DIFF_FILES="$(git diff-files --ignore-submodules)"
+        #if [[ $OUTPUT_DIFF == *"pkg/template/assets_vfsdata.go"* ]]; then
+        if [[ $DIFF_FILES == *"scripts/tag_release_manually.sh"* ]]; then
+            echo >&2 "cannot $1: you have assets unstaged changes."
+            git diff-files --name-status -r --ignore-submodules -- >&2
+            err=1
+        fi
     fi
 
     # Disallow uncommitted changes in the index
     if ! git diff-index --cached --quiet HEAD --ignore-submodules --
     then
-        echo >&2 "cannot $1: your index contains uncommitted changes."
-        git diff-index --cached --name-status -r --ignore-submodules HEAD -- >&2
-        err=1
+        DIFF_INDEX="$(git diff-index --cached HEAD --ignore-submodules --)"
+        #if [[ $DIFF_FILES == *"pkg/template/assets_vfsdata.go"* ]]; then
+        if [[ $DIFF_INDEX == *"scripts/tag_release_manually.sh"* ]]; then
+            echo >&2 "cannot $1: your index contains uncommitted changes."
+            git diff-index --cached --name-status -r --ignore-submodules HEAD -- >&2
+            err=1
+        fi
     fi
 
     if [ $err = 1 ]
